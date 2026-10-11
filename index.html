@@ -1,420 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RayGamix Ultimate Stress Tester & 3D Visualizer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        @font-face { font-family: 'RayGamix Neue'; src: url('https://raygamix.com/RayGamix%20Neue/RayGamix_Neue_regular.ttf') format('truetype'); }
-        * { box-sizing: border-box; font-family: 'RayGamix Neue', system-ui, sans-serif; }
-        body { margin: 0; background: #03070b; color: #fff; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background: #0a131c; border: 2px solid #00b7ff; border-radius: 20px; padding: 25px; box-shadow: 0 0 50px rgba(0,183,255,0.4); backdrop-filter: blur(15px); }
-        h1 { color: #00b7ff; margin-top: 0; text-shadow: 0 0 15px rgba(0,183,255,0.6); font-size: 26px; display: flex; align-items: center; gap: 10px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; color: #7d96b0; font-size: 12px; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px; background: rgba(0,0,0,0.6); border: 1px solid #00b7ff; border-radius: 10px; color: #fff; font-size: 13px; outline: none; transition: 0.2s; }
-        input:focus, select:focus { border-color: #00e676; box-shadow: 0 0 10px rgba(0,230,118,0.3); }
-        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        button { background: linear-gradient(135deg, #00b7ff, #0088cc); color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; flex: 1; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,183,255,0.5); }
-        button.stop { background: linear-gradient(135deg, #ff4444, #cc0000); color: #fff; }
-        button.export { background: linear-gradient(135deg, #ffc107, #ff9800); color: #000; }
-        button.visual { background: linear-gradient(135deg, #00e676, #00b7ff); color: #000; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 15px; }
-        .stat-card { background: rgba(0,183,255,0.05); border: 1px solid rgba(0,183,255,0.3); padding: 12px; border-radius: 12px; text-align: center; position: relative; overflow: hidden; }
-        .stat-card::before { content:''; position: absolute; top:0; left:0; width:100%; height:3px; background: linear-gradient(90deg, #00b7ff, #00e676); }
-        .stat-val { font-size: 22px; font-weight: 900; color: #00b7ff; margin-top: 3px; text-shadow: 0 0 10px rgba(0,183,255,0.4); }
-        #chart-container { background: #010408; border: 1px solid rgba(0,183,255,0.3); border-radius: 12px; padding: 12px; height: 150px; position: relative; }
-        #viewport-3d { background: #010408; border: 2px solid #00b7ff; border-radius: 12px; height: 400px; position: relative; display: none; overflow: hidden; }
-        canvas { width: 100%; height: 100%; display: block; }
-        #logs { background: #010408; border: 1px solid rgba(0,183,255,0.3); border-radius: 12px; padding: 12px; height: 180px; overflow-y: auto; font-family: monospace !important; font-size: 11px; display: flex; flex-direction: column; gap: 3px; }
-        .log-info { color: #00b7ff; }
-        .log-success { color: #00e676; }
-        .log-warn { color: #ffc107; }
-        .log-error { color: #ff4444; }
-        .checkbox-label { display: flex; align-items: center; gap: 10px; color: #fff; cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 8px; }
-        .checkbox-label input { width: 18px; height: 18px; accent-color: #00b7ff; cursor: pointer; }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RayGamix Engine - Live 3D World</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@font-face{font-family:'RayGamix Neue';src:url('https://raygamix.com/RayGamix%20Neue/RayGamix_Neue_regular.ttf') format('truetype')}
+*{box-sizing:border-box;user-select:none;font-family:'RayGamix Neue',sans-serif!important}
+body,html{margin:0;padding:0;width:100vw;height:100vh;overflow:hidden;background:#87ceeb}
+#hud-top{position:fixed;top:15px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(0,0,0,0.95),rgba(0,20,40,0.95));color:#fff;border:2px solid rgba(0,183,255,0.8);padding:12px 28px;border-radius:35px;z-index:2000;display:flex;gap:20px;align-items:center;font-weight:900;font-size:14px;box-shadow:0 8px 32px rgba(0,183,255,0.3);backdrop-filter:blur(10px)}
+.chip-accent{color:#00b7ff;text-shadow:0 0 10px rgba(0,183,255,0.5)}
+.chip-gold{color:#ffc107;text-shadow:0 0 10px rgba(255,193,7,0.5)}
+.chip-green{color:#00e676;text-shadow:0 0 10px rgba(0,230,118,0.5)}
+.chip-red{color:#ff4444;text-shadow:0 0 10px rgba(255,68,68,0.5)}
+#health-bar-container{position:fixed;top:90px;left:50%;transform:translateX(-50%);width:280px;height:24px;background:rgba(0,0,0,0.8);border:2px solid #00b7ff;border-radius:12px;z-index:2000;overflow:hidden;box-shadow:0 4px 16px rgba(0,183,255,0.3)}
+#health-bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#00e676,#00b7ff);border-radius:10px;transition:width 0.3s ease}
+#health-bar-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:900;font-size:12px;text-shadow:0 1px 3px rgba(0,0,0,0.8)}
+.overhead-anchor{position:absolute;top:0;left:0;pointer-events:none;will-change:transform;transform:translate3d(0,0,0);z-index:1800;display:flex;flex-direction:column-reverse;align-items:center;gap:4px}
+.player-nametag{background:linear-gradient(135deg,rgba(0,0,0,0.9),rgba(0,30,60,0.9));border:2px solid #00b7ff;color:#fff;font-weight:900;font-size:11px;padding:3px 12px;border-radius:14px;text-shadow:0 0 8px rgba(0,183,255,0.5);white-space:nowrap}
+.player-health-mini{width:60px;height:6px;background:rgba(0,0,0,0.8);border:1px solid #00b7ff;border-radius:3px;overflow:hidden;margin-top:2px}
+.player-health-mini-fill{height:100%;background:linear-gradient(90deg,#00e676,#00b7ff)}
+#canvas-container{width:100vw;height:100vh;display:block}
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>⚡ RayGamix Ultimate Stress Tester & 3D Visualizer</h1>
-    <p style="color: #7d96b0; margin-top: -5px; margin-bottom: 20px;">Stress test backend concurrency and render live 3D bot avatars directly in your browser.</p>
-
-    <div class="grid-2">
-        <div class="form-group">
-            <label>Backend Target URL:</label>
-            <input type="text" id="targetUrl" value="https://raygamix-backend.raybod8765.workers.dev">
-        </div>
-        <div class="form-group">
-            <label>Target Game World ID:</label>
-            <div style="display: flex; gap: 8px;">
-                <select id="gameSelector">
-                    <option value="1">1: Neon Obby Parkour (Default)</option>
-                </select>
-                <button onclick="fetchBackendGames()" style="flex: 0 0 80px; padding: 8px; font-size: 11px;">🔄 Fetch</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid-2">
-        <div class="form-group">
-            <label>Concurrent Virtual Bots: <span id="botCountVal">10</span></label>
-            <input type="range" id="botSlider" min="1" max="30" value="10" oninput="document.getElementById('botCountVal').textContent=this.value">
-        </div>
-        <div class="form-group">
-            <label class="checkbox-label">
-                <input type="checkbox" id="humanVerifiedToggle">
-                Simulate Verified Human Status (Bypasses Bot Heuristics)
-            </label>
-        </div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <label>Active Bots</label>
-            <div id="statBots" class="stat-val">0</div>
-        </div>
-        <div class="stat-card">
-            <label>Total Syncs</label>
-            <div id="statSyncs" class="stat-val">0</div>
-        </div>
-        <div class="stat-card">
-            <label>Kicked / Blocked</label>
-            <div id="statKicks" class="stat-val" style="color: #ff4444;">0</div>
-        </div>
-        <div class="stat-card">
-            <label>Avg Latency</label>
-            <div id="statLatency" class="stat-val" style="color: #00e676;">0ms</div>
-        </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom: 15px;">
-        <div id="chart-container">
-            <label style="position: absolute; top: 10px; left: 15px; font-size: 10px;">Latency Telemetry Chart</label>
-            <canvas id="latencyCanvas"></canvas>
-        </div>
-        <div id="viewport-3d">
-            <label style="position: absolute; top: 10px; left: 15px; z-index: 10; font-size: 10px; color: #00e676;">🟢 Live 3D Bot Visualizer Viewport</label>
-            <div id="canvas3dContainer" style="width:100%;height:100%;"></div>
-        </div>
-    </div>
-
-    <div class="btn-group">
-        <button id="startBtn" onclick="startStressTest()">🚀 Start Stress Test</button>
-        <button id="stopBtn" class="stop" onclick="stopStressTest()" disabled>🛑 Stop Test</button>
-        <button class="visual" onclick="toggle3DVisualizer()" id="visualToggleBtn">👁️ Show 3D Viewport</button>
-        <button class="export" onclick="exportLogsCSV()">📥 Export CSV</button>
-    </div>
-
-    <label>Live Telemetry Console:</label>
-    <div id="logs"></div>
+<div id="hud-top">
+  <div>🎮 <span class="chip-accent">Neon Obby Parkour</span></div>
+  <div>⚡ FPS: <span id="fps-val" class="chip-accent">60</span></div>
+  <div>👤 <span class="chip-accent">Ray</span></div>
+  <div>🤖 Bots Active: <span class="chip-green">5 / 5</span></div>
 </div>
 
+<div id="health-bar-container">
+  <div id="health-bar-fill" style="width:100%"></div>
+  <div id="health-bar-text">100 / 100</div>
+</div>
+
+<div id="overhead-ui-layer" style="position:fixed;inset:0;pointer-events:none;z-index:1800"></div>
+<div id="canvas-container"></div>
+
 <script>
-let isRunning = false;
-let activeWorkers = [];
-let totalSyncsCount = 0;
-let totalKicksCount = 0;
-let latencyHistory = [];
-let logEntries = [];
-let isVisualizerActive = false;
+const AVATAR_ROUNDNESS = 0.10;
+const MAX_FRONTEND_BOTS = 5; // Absolute unbreakable 5-bot limit
 
-const latencyCanvas = document.getElementById('latencyCanvas');
-const lCtx = latencyCanvas.getContext('2d');
-
-function resizeLatencyCanvas() {
-    latencyCanvas.width = latencyCanvas.parentElement.clientWidth;
-    latencyCanvas.height = latencyCanvas.parentElement.clientHeight - 20;
-}
-window.addEventListener('resize', resizeLatencyCanvas);
-resizeLatencyCanvas();
-
-function drawChart() {
-    lCtx.clearRect(0, 0, latencyCanvas.width, latencyCanvas.height);
-    lCtx.strokeStyle = 'rgba(0,183,255,0.08)';
-    lCtx.lineWidth = 1;
-    for (let i = 0; i < latencyCanvas.height; i += 25) {
-        lCtx.beginPath();
-        lCtx.moveTo(0, i);
-        lCtx.lineTo(latencyCanvas.width, i);
-        lCtx.stroke();
-    }
-    if (latencyHistory.length < 2) return;
-    lCtx.strokeStyle = '#00b7ff';
-    lCtx.lineWidth = 2;
-    lCtx.beginPath();
-    const maxVal = Math.max(200, ...latencyHistory);
-    const step = latencyCanvas.width / (latencyHistory.length - 1);
-    latencyHistory.forEach((val, idx) => {
-        const x = idx * step;
-        const y = latencyCanvas.height - (val / maxVal) * (latencyCanvas.height - 15) - 5;
-        if (idx === 0) lCtx.moveTo(x, y);
-        else lCtx.lineTo(x, y);
-    });
-    lCtx.stroke();
-}
-
-// 3D Visualizer Setup
-let vizScene, vizCamera, vizRenderer, vizClock;
-let vizBotsMap = new Map();
-
-function init3DVisualizer() {
-    const container = document.getElementById('canvas3dContainer');
-    if (vizRenderer) return;
-
-    vizScene = new THREE.Scene();
-    vizScene.background = new THREE.Color(0x050b14);
-    vizScene.fog = new THREE.FogExp2(0x050b14, 0.02);
-
-    vizCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 500);
-    vizCamera.position.set(0, 25, 35);
-    vizCamera.lookAt(0, 0, 0);
-
-    vizRenderer = new THREE.WebGLRenderer({ antialias: true });
-    vizRenderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(vizRenderer.domElement);
-
-    vizScene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-    sun.position.set(20, 40, 20);
-    vizScene.add(sun);
-
-    const grid = new THREE.GridHelper(100, 20, 0x00b7ff, 0x0a233c);
-    grid.position.y = -0.5;
-    vizScene.add(grid);
-
-    vizClock = new THREE.Clock();
-    animateVisualizer();
-}
-
-function animateVisualizer() {
-    requestAnimationFrame(animateVisualizer);
-    if (!isVisualizerActive) return;
-    for (const [id, mesh] of vizBotsMap.entries()) {
-        mesh.position.lerp(mesh.targetPos, 0.2);
-    }
-    vizRenderer.render(vizScene, vizCamera);
-}
-
-function toggle3DVisualizer() {
-    isVisualizerActive = !isVisualizerActive;
-    const vp = document.getElementById('viewport-3d');
-    const btn = document.getElementById('visualToggleBtn');
-    if (isVisualizerActive) {
-        vp.style.display = 'block';
-        btn.textContent = '🙈 Hide 3D Viewport';
-        init3DVisualizer();
-        resizeLatencyCanvas();
-    } else {
-        vp.style.display = 'none';
-        btn.textContent = '👁️ Show 3D Viewport';
-    }
-}
-
-function updateVisualizerBot(playerId, x, y, z) {
-    if (!isVisualizerActive || !vizScene) return;
-    let botGroup = vizBotsMap.get(playerId);
-    if (!botGroup) {
-        botGroup = new THREE.Group();
-        const body = new THREE.Mesh(
-            new THREE.BoxGeometry(1.2, 2.0, 1.0),
-            new THREE.MeshStandardMaterial({ color: 0x00b7ff, roughness: 0.3 })
-        );
-        body.position.y = 1.0;
-        body.castShadow = true;
-        botGroup.add(body);
-
-        const head = new THREE.Mesh(
-            new THREE.BoxGeometry(1.0, 1.0, 1.0),
-            new THREE.MeshStandardMaterial({ color: 0xffdbac })
-        );
-        head.position.y = 2.5;
-        botGroup.add(head);
-
-        botGroup.targetPos = new THREE.Vector3(x, y, z);
-        botGroup.position.copy(botGroup.targetPos);
-        vizScene.add(botGroup);
-        vizBotsMap.set(playerId, botGroup);
-    } else {
-        botGroup.targetPos.set(x, y, z);
-    }
-}
-
-function log(msg, type = 'info') {
-    const box = document.getElementById('logs');
-    const timeStr = new Date().toLocaleTimeString();
-    logEntries.push({ time: timeStr, message: msg, type });
-    const div = document.createElement('div');
-    div.className = 'log-' + type;
-    div.textContent = `[${timeStr}] ${msg}`;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-}
-
-async function fetchBackendGames() {
-    const targetUrl = document.getElementById('targetUrl').value.trim();
-    log(`Fetching games from ${targetUrl}/games...`, 'info');
-    try {
-        const res = await fetch(`${targetUrl}/games`);
-        if (!res.ok) throw new Error(`HTTP status ${res.status}`);
-        const games = await res.json();
-        const selector = document.getElementById('gameSelector');
-        selector.innerHTML = '';
-        games.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = g.id;
-            opt.textContent = `${g.id}: ${g.title} (${g.creator})`;
-            selector.appendChild(opt);
-        });
-        log(`Successfully loaded ${games.length} game(s) from backend.`, 'success');
-    } catch (e) {
-        log(`Could not load game list (${e.message}). Using default ID "1".`, 'warn');
-        const selector = document.getElementById('gameSelector');
-        selector.innerHTML = '<option value="1">1: Neon Obby Parkour (Default)</option>';
-    }
-}
-setTimeout(fetchBackendGames, 500);
-
-async function generateDeviceToken(targetUrl, deviceId) {
-    try {
-        const res = await fetch(`${targetUrl}/auth/device`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deviceId })
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data.success ? data.token : null;
-    } catch (e) { return null; }
-}
-
-async function simulateVirtualPlayer(index, targetUrl, gameId) {
-    const hexId = index.toString(16).padStart(32, '0');
-    const deviceId = `dev_${hexId}`;
-    const playerId = `ply_stress_${index}`;
-    
-    const token = await generateDeviceToken(targetUrl, deviceId);
-    if (!token) return;
-
-    let posX = (index - 5) * 3;
-    let posZ = Math.random() * 10 - 5;
-    let posY = 1.0;
-    const isHuman = document.getElementById('humanVerifiedToggle').checked;
-
-    const intervalId = setInterval(async () => {
-        if (!isRunning) {
-            clearInterval(intervalId);
-            return;
+function createRoundedBoxGeometry(width, height, depth, radius, segments) {
+    segments = segments || 16;
+    const maxRadius = Math.min(width, height, depth) / 2 - 0.0001;
+    if (radius > maxRadius) radius = maxRadius;
+    if (radius < 0) radius = 0;
+    const geo = new THREE.BoxGeometry(width, height, depth, segments, segments, segments);
+    const pos = geo.attributes.position;
+    const halfW = width / 2 - radius;
+    const halfH = height / 2 - radius;
+    const halfD = depth / 2 - radius;
+    const v = new THREE.Vector3(), c = new THREE.Vector3(), off = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i);
+        c.set(Math.max(-halfW, Math.min(halfW, v.x)), Math.max(-halfH, Math.min(halfH, v.y)), Math.max(-halfD, Math.min(halfD, v.z)));
+        off.set(v.x - c.x, v.y - c.y, v.z - c.z);
+        const len = off.length();
+        if (len > 0.0001) {
+            off.multiplyScalar(radius / len);
+            v.set(c.x + off.x, c.y + off.y, c.z + off.z);
+        } else {
+            v.set(c.x, c.y, c.z);
         }
-
-        posX += (Math.random() - 0.5) * 2;
-        posZ += (Math.random() - 0.5) * 2;
-        
-        const payload = {
-            gameId: gameId,
-            serverId: "stress_room_v2",
-            playerId: playerId,
-            username: `Bot${index}`,
-            x: Number(posX.toFixed(2)),
-            y: Number(posY.toFixed(2)),
-            z: Number(posZ.toFixed(2)),
-            rotY: 0.0,
-            animState: "walking",
-            avatar: { headColor: 0xffdbac, torsoColor: 0x00b7ff, legsColor: 0x0033aa },
-            isGrounded: true,
-            health: 100,
-            clientRTT: Math.floor(Math.random() * 30) + 10,
-            humanVerified: isHuman
-        };
-
-        const t0 = performance.now();
-        try {
-            const res = await fetch(`${targetUrl}/multiplayer/sync`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
-                body: JSON.stringify(payload)
-            });
-
-            const latency = performance.now() - t0;
-            latencyHistory.push(latency);
-            if (latencyHistory.length > 50) latencyHistory.shift();
-            drawChart();
-
-            const avg = latencyHistory.reduce((a, b) => a + b, 0) / latencyHistory.length;
-            document.getElementById('statLatency').textContent = avg.toFixed(1) + 'ms';
-
-            if (res.ok) {
-                const data = await res.json();
-                totalSyncsCount++;
-                document.getElementById('statSyncs').textContent = totalSyncsCount;
-
-                updateVisualizerBot(playerId, posX, posY, posZ);
-
-                if (data.kicked) {
-                    totalKicksCount++;
-                    document.getElementById('statKicks').textContent = totalKicksCount;
-                    log(`⚡ [Bot #${index}] Kicked! Reason: ${data.reason}`, 'warn');
-                    clearInterval(intervalId);
-                } else {
-                    log(`[Bot #${index}] Sync OK (${latency.toFixed(1)}ms) | Room: ${data.roomSize}`, 'info');
-                }
-            }
-        } catch (err) {}
-    }, 400);
-
-    activeWorkers.push(intervalId);
-}
-
-async function startStressTest() {
-    if (isRunning) return;
-    isRunning = true;
-    totalSyncsCount = 0;
-    totalKicksCount = 0;
-    latencyHistory = [];
-    document.getElementById('statSyncs').textContent = '0';
-    document.getElementById('statKicks').textContent = '0';
-    document.getElementById('startBtn').disabled = true;
-    document.getElementById('stopBtn').disabled = false;
-
-    const targetUrl = document.getElementById('targetUrl').value.trim();
-    const gameId = document.getElementById('gameSelector').value;
-    const concurrentTesters = parseInt(document.getElementById('botSlider').value);
-
-    document.getElementById('statBots').textContent = concurrentTesters;
-    log(`Starting stress test with ${concurrentTesters} bots on Game ID #${gameId}...`, 'success');
-
-    for (let i = 1; i <= concurrentTesters; i++) {
-        if (!isRunning) break;
-        simulateVirtualPlayer(i, targetUrl, gameId);
-        await new Promise(r => setTimeout(r, 100));
+        pos.setXYZ(i, v.x, v.y, v.z);
     }
+    geo.computeVertexNormals();
+    return geo;
 }
 
-function stopStressTest() {
-    isRunning = false;
-    activeWorkers.forEach(id => clearInterval(id));
-    activeWorkers = [];
-    document.getElementById('statBots').textContent = '0';
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    log('Stress test stopped.', 'warn');
+function createPlayerMaterial(c){ return new THREE.MeshStandardMaterial({color:c, roughness:0.4}); }
+
+function buildPlayerRig(t, config, name){
+  const root = new THREE.Group();
+  const skin = config.headColor || 0xffdbac;
+  const torsoCol = config.torsoColor || 0x00b7ff;
+  const legsCol = config.legsColor || 0x0033aa;
+
+  const head = new THREE.Mesh(createRoundedBoxGeometry(1.25, 1.25, 1.25, AVATAR_ROUNDNESS, 16), createPlayerMaterial(skin));
+  head.position.y = 4.8;
+  head.castShadow = true;
+
+  const torso = new THREE.Mesh(createRoundedBoxGeometry(1.8, 2.2, 1.0, AVATAR_ROUNDNESS, 16), createPlayerMaterial(torsoCol));
+  torso.position.y = 3.1;
+  torso.castShadow = true;
+
+  function mk(col, x, y, isLeg){
+    const w = isLeg ? 0.85 : 0.8, h = isLeg ? 2.35 : 2.2, d = isLeg ? 0.85 : 0.8;
+    const p = new THREE.Group();
+    p.position.set(x, y, 0);
+    const m = new THREE.Mesh(createRoundedBoxGeometry(w, h, d, AVATAR_ROUNDNESS, 16), createPlayerMaterial(col));
+    m.position.set(0, -h/2, 0);
+    m.castShadow = true;
+    p.add(m);
+    return p;
+  }
+
+  root.add(head, torso, mk(skin, -1.4, 4.2, false), mk(skin, 1.4, 4.2, false), mk(legsCol, -0.5, 2.2, true), mk(legsCol, 0.5, 2.2, true));
+  t.group = root;
+
+  const ov = document.createElement('div');
+  ov.className = 'overhead-anchor';
+  ov.innerHTML = '<div class="player-nametag">' + name + '</div><div class="player-health-mini"><div class="player-health-mini-fill" style="width:100%"></div></div>';
+  document.getElementById('overhead-ui-layer').appendChild(ov);
+  t.overheadElement = ov;
 }
 
-function exportLogsCSV() {
-    if (logEntries.length === 0) return;
-    let csv = 'Time,Type,Message\n';
-    logEntries.forEach(e => { csv += `"${e.time}","${e.type}","${e.message.replace(/"/g, '""')}"\n`; });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `raygamix_stress_logs_${Date.now()}.csv`; a.click();
-    URL.revokeObjectURL(url);
+let scene, camera, renderer, clock;
+let localPlayer = { group: null, moveVelocity: new THREE.Vector3() };
+let frontendBots = [];
+const keys = {};
+let cameraYaw = 0, cameraPitch = 0.3;
+
+function initFrontendBots(){
+  const botNames = ["Explorer_Bot", "ParkourPro", "SpeedyBot", "NeonStalker", "MasterBot"];
+  for(let i = 0; i < MAX_FRONTEND_BOTS; i++){
+    const bot = {
+      username: botNames[i],
+      group: null,
+      position: new THREE.Vector3((Math.random() - 0.5) * 25, 1, -10 - Math.random() * 25),
+      targetPos: new THREE.Vector3(),
+      moveTimer: 0
+    };
+    buildPlayerRig(bot, { headColor: 0xffdbac, torsoColor: 0xff5555, legsColor: 0x00b7ff }, bot.username);
+    bot.group.position.copy(bot.position);
+    scene.add(bot.group);
+    frontendBots.push(bot);
+  }
 }
+
+function updateFrontendBots(delta){
+  frontendBots.forEach(bot => {
+    bot.moveTimer += delta;
+    if(bot.moveTimer > 3.5){
+      bot.moveTimer = 0;
+      bot.targetPos.set((Math.random() - 0.5) * 35, 1, (Math.random() - 0.5) * 35);
+    }
+    if(bot.targetPos.length() > 0){
+      const dir = new THREE.Vector3().subVectors(bot.targetPos, bot.group.position);
+      if(dir.length() > 0.8){
+        dir.normalize();
+        bot.group.position.addScaledVector(dir, 3.5 * delta);
+        bot.group.rotation.y = Math.atan2(dir.x, dir.z);
+      }
+    }
+    updateOverhead(bot);
+  });
+}
+
+function updateOverhead(c){
+  if(!c.group || !c.overheadElement) return;
+  const _ohVec = new THREE.Vector3();
+  c.group.getWorldPosition(_ohVec);
+  _ohVec.y += 6.8;
+  _ohVec.project(camera);
+  if(_ohVec.z < -1 || _ohVec.z > 1){
+    c.overheadElement.style.display = 'none';
+    return;
+  }
+  c.overheadElement.style.display = '';
+  const x = (_ohVec.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-(_ohVec.y * 0.5) + 0.5) * window.innerHeight;
+  c.overheadElement.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+}
+
+function init(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.FogExp2(0x87ceeb, 0.0055);
+
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 600);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(50, 100, 50);
+  scene.add(sun);
+
+  // Baseplate
+  const base = new THREE.Mesh(new THREE.BoxGeometry(150, 2, 150), new THREE.MeshStandardMaterial({color: 0x111a24}));
+  base.position.set(0, -1, 0);
+  scene.add(base);
+
+  // Local Player
+  buildPlayerRig(localPlayer, { headColor: 0xffdbac, torsoColor: 0x00b7ff, legsColor: 0x0033aa }, "Ray");
+  localPlayer.group.position.set(0, 1, 0);
+  scene.add(localPlayer.group);
+
+  // Spawn exactly 5 visible bots
+  initFrontendBots();
+
+  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+  window.addEventListener('mousemove', e => {
+    if(e.buttons === 2){
+      cameraYaw -= e.movementX * 0.005;
+      cameraPitch = Math.max(-0.8, Math.min(1.5, cameraPitch + e.movementY * 0.005));
+    }
+  });
+  window.addEventListener('contextmenu', e => e.preventDefault());
+
+  clock = new THREE.Clock();
+  requestAnimationFrame(loop);
+}
+
+function loop(){
+  requestAnimationFrame(loop);
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  let mx = 0, mz = 0;
+  if(keys['w'] || keys['arrowup']) mz -= 1;
+  if(keys['s'] || keys['arrowdown']) mz += 1;
+  if(keys['a'] || keys['arrowleft']) mx -= 1;
+  if(keys['d'] || keys['arrowright']) mx += 1;
+  const il = Math.hypot(mx, mz);
+
+  if(il > 0.01){
+    const fx = Math.sin(cameraYaw), fz = Math.cos(cameraYaw);
+    const rx = Math.cos(cameraYaw), rz = -Math.sin(cameraYaw);
+    localPlayer.moveVelocity.x = ((mx/il)*rx + (mz/il)*fx) * 12;
+    localPlayer.moveVelocity.z = ((mx/il)*rz + (mz/il)*fz) * 12;
+  } else {
+    localPlayer.moveVelocity.x *= 0.8;
+    localPlayer.moveVelocity.z *= 0.8;
+  }
+  localPlayer.group.position.x += localPlayer.moveVelocity.x * delta;
+  localPlayer.group.position.z += localPlayer.moveVelocity.z * delta;
+
+  updateFrontendBots(delta);
+  updateOverhead(localPlayer);
+
+  const dist = 40;
+  camera.position.set(
+    localPlayer.group.position.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * dist,
+    localPlayer.group.position.y + 4 + Math.sin(cameraPitch) * dist,
+    localPlayer.group.position.z + Math.cos(cameraYaw) * Math.cos(cameraPitch) * dist
+  );
+  camera.lookAt(localPlayer.group.position.x, localPlayer.group.position.y + 2, localPlayer.group.position.z);
+
+  renderer.render(scene, camera);
+}
+
+window.onload = init;
 </script>
-
 </body>
 </html>
